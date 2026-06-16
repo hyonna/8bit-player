@@ -1,0 +1,17 @@
+{
+  "name": "8bit-player",
+  "version": "1.0.0",
+  "description": "8-bit style YouTube music player for macOS",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc --noEmit false",
+    "start": "pnpm run build && ./node_modules/.bin/electron .",
+    "dev":   "tsc --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "electron":    "^28.1.0",
+    "typescript":  "^5.4.5"
+  },
+  "packageManager": "pnpm@10.15.0"
+}

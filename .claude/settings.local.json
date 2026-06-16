@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npm start *)",
+      "Bash(pkill -f \"electron .\")",
+      "Bash(pkill -f \"electron \\\\.\")",
+      "Bash(pnpm --version)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm approve-builds *)",
+      "Bash(pnpm rebuild *)",
+      "Bash(npx electron *)",
+      "Bash(node_modules/.bin/electron --version)",
+      "Bash(pnpm run *)",
+      "Bash(node_modules/.bin/electron .)",
+      "Bash(node install.js)",
+      "Bash(ELECTRON_MIRROR=\"https://github.com/electron/electron/releases/download/\" node install.js)",
+      "Bash(pnpm start *)",
+      "Bash(pnpm build *)",
+      "Bash(/Users/hyonna/Front_dev/8bit-player/node_modules/.bin/electron .)",
+      "Bash(pkill -f \"Electron\")"
+    ]
+  }
+}

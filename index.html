@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>8BIT MAGICAL PLAYER</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="scanlines"></div>
+  <div class="crt-vignette"></div>
+
+  <!-- ── Group name input dialog ── -->
+  <div id="name-dialog" class="modal-overlay hidden">
+    <div class="mini-dialog">
+      <div class="mini-dialog-label" id="name-dialog-label">GROUP NAME :</div>
+      <input type="text" id="name-dialog-input" class="name-dialog-input"
+        maxlength="30" autocomplete="off" spellcheck="false">
+      <div class="mini-dialog-btns">
+        <button id="name-dialog-ok"     class="pixel-btn">✓ OK</button>
+        <button id="name-dialog-cancel" class="mini-cancel-btn">✕ CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Confirm dialog ── -->
+  <div id="confirm-dialog" class="modal-overlay hidden">
+    <div class="mini-dialog">
+      <div class="mini-dialog-label" id="confirm-dialog-msg">정말 삭제할까요?</div>
+      <div class="mini-dialog-btns">
+        <button id="confirm-dialog-ok"     class="pixel-btn">✓ OK</button>
+        <button id="confirm-dialog-cancel" class="mini-cancel-btn">✕ CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Bookmark group popup ── -->
+  <div id="bm-popup" class="bm-popup hidden">
+    <div class="bm-popup-title">ADD TO GROUP :</div>
+    <div id="bm-popup-groups" class="bm-popup-groups"></div>
+    <button id="bm-popup-new" class="bm-popup-new">+ NEW GROUP</button>
+  </div>
+
+  <!-- ── Title bar ── -->
+  <header class="titlebar">
+    <div class="titlebar-left">
+      <span class="logo-icon">✦</span>
+      <span class="titlebar-title">✦ 8BIT MAGICAL PLAYER ✦</span>
+    </div>
+    <div class="titlebar-right">
+      <span class="kb-hint">SPACE ▶/⏸ &nbsp;←→ TRACK &nbsp;↑↓ VOL</span>
+      <button class="win-btn login-btn" id="btn-login">♥ LOGIN</button>
+      <button class="win-btn" id="btn-min">─</button>
+      <button class="win-btn" id="btn-max">□</button>
+      <button class="win-btn close" id="btn-close">✕</button>
+    </div>
+  </header>
+
+  <!-- ── Search bar ── -->
+  <div class="search-bar">
+    <span class="search-lbl">✦&nbsp;SEARCH&nbsp;:</span>
+    <input type="text" id="search-input" class="search-input"
+      placeholder="ENTER ARTIST OR SONG NAME..."
+      maxlength="120" autocomplete="off" spellcheck="false">
+    <button id="search-btn" class="pixel-btn">♥&nbsp;SEARCH</button>
+  </div>
+
+  <!-- ── Main layout ── -->
+  <div class="main-content">
+
+    <!-- LEFT: Player panel (resizable) -->
+    <section class="player-panel" id="player-panel">
+
+      <div class="panel-header">
+        <span class="blink">★</span>&nbsp;NOW&nbsp;PLAYING
+      </div>
+
+      <div class="video-wrap">
+        <webview id="yt-player"
+          src="about:blank"
+          partition="persist:youtube"
+          useragent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+          allowpopups>
+        </webview>
+        <div id="placeholder" class="placeholder">
+          <pre class="pix-art">
+╔══════════════╗
+║  ✦  ♥  ✦  ♥ ║
+║   ★       ★  ║
+║  MAGICAL   ║
+║  PLAYER ✦  ║
+║   ★       ★  ║
+║  ♥  ✦  ♥  ✦ ║
+╚══════════════╝</pre>
+          <p class="ph-hint blink2">✦ SELECT A TRACK TO BEGIN ✦</p>
+        </div>
+      </div>
+
+      <!-- Playback controls -->
+      <div class="controls">
+        <button class="ctrl-btn" id="ctrl-prev" title="Previous (←)">◀◀</button>
+        <button class="ctrl-btn main" id="ctrl-play" title="Play/Pause (Space)">▶</button>
+        <button class="ctrl-btn" id="ctrl-next" title="Next (→)">▶▶</button>
+      </div>
+
+      <!-- Now playing info -->
+      <div class="np-block">
+        <div class="np-row">
+          <span class="np-lbl">TRACK&nbsp;:</span>
+          <span id="np-title" class="np-val">-- NO TRACK SELECTED --</span>
+        </div>
+        <div class="np-row">
+          <span class="np-lbl">CH&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+          <span id="np-channel" class="np-val dim">--</span>
+        </div>
+        <div class="np-row">
+          <span class="np-lbl">TIME&nbsp;&nbsp;:</span>
+          <span id="np-duration" class="np-val star">--:--</span>
+        </div>
+      </div>
+
+      <!-- 8bit night sky -->
+      <div class="nightsky" id="nightsky" aria-hidden="true">
+        <canvas id="sky-canvas"></canvas>
+      </div>
+
+      <!-- Keyboard guide -->
+      <div class="kb-guide">
+        <div class="kb-row">
+          <span class="kb-key"><span>SPACE</span> PLAY/PAUSE</span>
+          <span class="kb-key"><span>←</span><span>→</span> PREV/NEXT</span>
+        </div>
+        <div class="kb-row">
+          <span class="kb-key"><span>↑</span><span>↓</span> VOLUME</span>
+          <span class="kb-key"><span>M</span> MUTE</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Drag resize handle -->
+    <div class="resize-handle" id="resize-handle">
+      <div class="resize-grip">⋮</div>
+    </div>
+
+    <!-- RIGHT: Search + Bookmarks -->
+    <section class="results-panel">
+
+      <!-- Tab bar -->
+      <div class="panel-tabs">
+        <button class="tab-btn active" id="tab-search">✦ SEARCH</button>
+        <button class="tab-btn" id="tab-bookmarks">♥ BOOKMARKS</button>
+        <span id="result-count" class="result-count"></span>
+      </div>
+
+      <!-- Search view -->
+      <div id="view-search" class="tab-view active">
+        <div id="results-list" class="results-list">
+          <div class="empty-state">
+            <p>✦ NO RESULTS YET ✦</p>
+            <p class="dim">TYPE A SONG NAME BELOW</p>
+            <p class="dim">AND PRESS SEARCH ♥</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bookmarks view -->
+      <div id="view-bookmarks" class="tab-view">
+        <div class="group-bar" id="group-bar">
+          <!-- populated by JS -->
+        </div>
+        <div id="bookmark-list" class="results-list">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+
+  <script src="dist/renderer.js"></script>
+</body>
+</html>
