@@ -29,11 +29,12 @@ export interface CookieImportResult {
 }
 
 export interface ElectronAPI {
-  search:               (query: string) => Promise<Track[]>;
-  importChromeCookies:  ()              => Promise<CookieImportResult>;
-  minimize:             ()              => void;
-  maximize:             ()              => void;
-  close:                ()              => void;
+  search:               (query: string)                        => Promise<Track[]>;
+  importChromeCookies:  ()                                     => Promise<CookieImportResult>;
+  fetchLyrics:          (artist: string, title: string)        => Promise<string | null>;
+  minimize:             ()                                     => void;
+  maximize:             ()                                     => void;
+  close:                ()                                     => void;
 }
 
 // ── YouTube internal response shapes (partial) ───────────────────────────────

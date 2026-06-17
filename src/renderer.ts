@@ -19,11 +19,12 @@ interface BookmarkData  { groups: BookmarkGroup[] }
 interface CookieImportResult { success: boolean; count: number; error?: string }
 
 interface ElectronAPI {
-  search:               (query: string) => Promise<Track[]>;
-  importChromeCookies:  ()              => Promise<CookieImportResult>;
-  minimize:             ()              => void;
-  maximize:             ()              => void;
-  close:                ()              => void;
+  search:               (query: string)                     => Promise<Track[]>;
+  importChromeCookies:  ()                                  => Promise<CookieImportResult>;
+  fetchLyrics:          (artist: string, title: string)     => Promise<string | null>;
+  minimize:             ()                                  => void;
+  maximize:             ()                                  => void;
+  close:                ()                                  => void;
 }
 
 // Electron webview element (not in standard DOM types)
@@ -69,12 +70,17 @@ el<HTMLButtonElement>('btn-close').addEventListener('click', () => window.api.cl
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
-let searchResults:  Track[]        = [];
-let currentId:      string | null  = null;
-let currentIndex:   number         = -1;
-let activeBmTrack:  Track | null   = null;
-let currentBmGroup: string | null  = null;
-let playStateSync:  ReturnType<typeof setInterval> | null = null;
+let searchResults:   Track[]        = [];
+let currentId:       string | null  = null;
+let currentIndex:    number         = -1;
+let activeBmTrack:   Track | null   = null;
+let currentBmGroup:  string | null  = null;
+let playStateSync:   ReturnType<typeof setInterval> | null = null;
+
+const lyricsOverlay = el<HTMLElement>('lyrics-overlay');
+const lyricsScroll  = el<HTMLElement>('lyrics-scroll');
+const lyricsLines   = el<HTMLElement>('lyrics-lines');
+const lyricsStatus  = el<HTMLElement>('lyrics-status');
 
 // ── YouTube CSS injection ─────────────────────────────────────────────────────
 // Hides YouTube chrome (header/sidebar/comments) inside the webview.
@@ -312,6 +318,7 @@ function playTrack(track: Track, clickedEl: HTMLElement | null, idx: number): vo
 
   renderBookmarkList();
   startPlaySync();
+  void loadLyrics(track);
 }
 
 function playPrev(): void {
@@ -324,6 +331,48 @@ function playNext(): void {
   if (!searchResults.length) return;
   const idx = currentIndex < searchResults.length - 1 ? currentIndex + 1 : 0;
   playTrack(searchResults[idx]!, null, idx);
+}
+
+// ── Lyrics ────────────────────────────────────────────────────────────────────
+
+function parseLyricsQuery(title: string, channel: string): [string, string] {
+  const m = title.match(/^(.+?)\s*[-–—]\s*(.+)$/);
+  if (m) return [(m[1] ?? '').trim(), cleanSongTitle((m[2] ?? '').trim())];
+  return [channel, cleanSongTitle(title)];
+}
+
+function cleanSongTitle(s: string): string {
+  return s
+    .replace(/\s*[\[(（《][^\]）)》]*[\]）)》]/g, '')
+    .replace(/\s*(official|mv|m\.v\.?|music\s*video|lyric(s)?|video|hd|4k|remaster(ed)?)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function loadLyrics(track: Track): Promise<void> {
+  lyricsLines.innerHTML = '';
+  lyricsScroll.scrollTop = 0;
+  lyricsStatus.textContent = '✦ LOADING LYRICS ✦';
+  lyricsOverlay.classList.remove('hidden');
+
+  const [artist, song] = parseLyricsQuery(track.title, track.channel);
+  let lyrics: string | null = null;
+  try { lyrics = await window.api.fetchLyrics(artist, song); } catch { /* ignore */ }
+
+  if (!lyrics) {
+    lyricsStatus.textContent = '♪ NO LYRICS FOUND ♪';
+    return;
+  }
+
+  lyricsStatus.textContent = '';
+  const lines = lyrics.split(/\r?\n/);
+  lyricsLines.innerHTML =
+    '<div class="lyric-spacer"></div>' +
+    lines.map(l => l.trim()
+      ? `<div class="lyric-line">${escHtml(l)}</div>`
+      : '<div class="lyric-blank"></div>',
+    ).join('') +
+    '<div class="lyric-spacer"></div>';
 }
 
 // ── Controls ──────────────────────────────────────────────────────────────────

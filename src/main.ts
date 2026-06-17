@@ -251,6 +251,27 @@ async function importChromeYouTubeCookies(sess: Session): Promise<number> {
   return count;
 }
 
+// ── Lyrics IPC ───────────────────────────────────────────────────────────────
+
+ipcMain.handle('fetch-lyrics', (_event, artist: string, title: string): Promise<string | null> => {
+  return new Promise(resolve => {
+    const url = `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`;
+    const req = https.get(url, { headers: { 'User-Agent': CHROME_UA, 'Accept': 'application/json' } }, (res: IncomingMessage) => {
+      let data = '';
+      res.setEncoding('utf8');
+      res.on('data', (chunk: string) => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data) as { lyrics?: string; error?: string };
+          resolve(json.lyrics?.trim() || null);
+        } catch { resolve(null); }
+      });
+    });
+    req.on('error', () => resolve(null));
+    req.setTimeout(8000, () => { req.destroy(); resolve(null); });
+  });
+});
+
 // ── YouTube search IPC ────────────────────────────────────────────────────────
 
 ipcMain.handle('search-youtube', (_event, query: string): Promise<Track[]> => {
